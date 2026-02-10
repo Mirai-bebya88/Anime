@@ -11,8 +11,6 @@ final class SignInViewController: UIViewController {
 
     private let viewModel = SignInViewModel()
 
-    // MARK: - UI Components
-
     private let logoImageView: UIImageView = {
         let iv = UIImageView()
         iv.image = UIImage(systemName: "play.rectangle.fill")
@@ -98,8 +96,6 @@ final class SignInViewController: UIViewController {
         setupKeyboardDismissal()
     }
 
-    // MARK: - Setup
-
     private func setupUI() {
         view.backgroundColor = UIColor.theme.background
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -176,8 +172,6 @@ final class SignInViewController: UIViewController {
         view.addGestureRecognizer(tapGesture)
     }
 
-    // MARK: - Actions
-
     @objc private func actionButtonTapped() {
         hideError()
         viewModel.authenticate(
@@ -203,7 +197,6 @@ final class SignInViewController: UIViewController {
         view.endEditing(true)
     }
 
-    // MARK: - Helpers
 
     private func showError(_ message: String) {
         errorLabel.text = message
