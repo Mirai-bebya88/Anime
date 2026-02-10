@@ -13,11 +13,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        
-        let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = UINavigationController(rootViewController: SignInViewController())
-        window.makeKeyAndVisible()
-        self.window = window
+
+        window = UIWindow(windowScene: windowScene)
+
+        let rootViewController: UIViewController
+        if UserRepository.shared.currentUser != nil {
+            rootViewController = MainTabBarController()
+        } else {
+            rootViewController = UINavigationController(rootViewController: SignInViewController())
+        }
+
+        window?.rootViewController = rootViewController
+        window?.makeKeyAndVisible()
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {}

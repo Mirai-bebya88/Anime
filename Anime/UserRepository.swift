@@ -25,7 +25,7 @@ final class UserRepository {
         return fetchUser(by: userId)
     }
 
-    func createUser(username: String, lastName: String, password: String) -> User? {
+    func createUser(username: String, password: String) -> User? {
         let user = User(context: coreData.context)
         user.id = UUID()
         user.username = username

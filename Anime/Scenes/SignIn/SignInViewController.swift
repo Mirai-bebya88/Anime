@@ -87,8 +87,6 @@ final class SignInViewController: UIViewController {
         return label
     }()
 
-    // MARK: - Lifecycle
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -165,6 +163,13 @@ final class SignInViewController: UIViewController {
             self?.showError(message)
         }
 
+        viewModel.onSuccess = { [weak self] _ in
+            guard let scene = self?.view.window?.windowScene,
+                  let sceneDelegate = scene.delegate as? SceneDelegate else { return }
+
+            let mainTabBar = MainTabBarController()
+            sceneDelegate.window?.rootViewController = mainTabBar
+        }
     }
 
     private func setupKeyboardDismissal() {

@@ -57,7 +57,7 @@ final class SignInViewModel {
             return
         }
 
-        if let user = userRepository.createUser(username: username, lastName: "", password: password) {
+        if let user = userRepository.createUser(username: username, password: password) {
             onSuccess?(user)
         } else {
             onError?("Failed to create account")
