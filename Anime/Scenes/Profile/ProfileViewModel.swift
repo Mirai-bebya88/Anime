@@ -10,16 +10,29 @@ import UIKit
 
 final class ProfileViewModel {
     private let userRepository = UserRepository.shared
-    
+    private let animeRepository = AnimeRepository.shared
+
     var user: User?
     var totalAnime: Int = 0
     var watchingCount: Int = 0
-    var completedCount: Int = 0
     var planToWatchCount: Int = 0
+    var favouriteCount: Int = 0
     var averageGameScore: Double = 0.0
     var highestGameScore: Int32 = 0
 
     var onDataUpdated: (() -> Void)?
+    
+    var memberSinceString: String {
+        guard let date = user?.memberSince else { return "Unknown" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+
+    var fullName: String {
+        guard let user = user else { return "Guest" }
+        return "\(user.username ?? "")"
+    }
 
     func loadProfile() {
         user = userRepository.currentUser
@@ -28,6 +41,12 @@ final class ProfileViewModel {
             onDataUpdated?()
             return
         }
+
+        let savedAnime = animeRepository.fetchAllSavedAnime(for: user)
+        watchingCount = savedAnime.filter { $0.watchStatus == "watching" }.count
+        planToWatchCount = savedAnime.filter { $0.watchStatus == "plan" }.count
+        favouriteCount = savedAnime.filter { $0.isFavorite == true }.count
+        totalAnime = savedAnime.count
 
         onDataUpdated?()
     }
@@ -41,17 +60,5 @@ final class ProfileViewModel {
 
     func logout() {
         userRepository.logout()
-    }
-
-    var memberSinceString: String {
-        guard let date = user?.memberSince else { return "Unknown" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
-    }
-
-    var fullName: String {
-        guard let user = user else { return "Guest" }
-        return "\(user.username ?? "")"
     }
 }

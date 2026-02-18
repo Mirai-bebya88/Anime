@@ -7,14 +7,28 @@
 
 import Foundation
 
-final class DiscoverViewModel {
-    static let shared = DiscoverViewModel()
+protocol DiscoverViewModelProtocol: AnyObject {
+    var isDataLoaded: Bool { get }
+    var searchResults: [Anime] { get }
+    var categories: [(id: Int, name: String)] { get }
+    var isSearching: Bool { get }
 
+    var refreshUI: (() -> Void)? { get set }
+    var showError: ((String) -> Void)? { get set }
+    var showLoading: ((Bool) -> Void)? { get set }
+
+    func loadInitialData() async
+    func getAnime(for categoryId: Int) -> [Anime]
+    func search(query: String)
+    func clearSearch()
+}
+
+final class DiscoverViewModel: DiscoverViewModelProtocol {
     private let animeService = AnimeService.shared
     private(set) var isDataLoaded = false
 
-    var searchResults: [Anime] = []
-    var animeByGenre: [Int: [Anime]] = [:]
+    private(set) var searchResults: [Anime] = []
+    private var animeByGenre: [Int: [Anime]] = [:]
 
     let categories: [(id: Int, name: String)] = [
         (0, "All"),
@@ -31,25 +45,27 @@ final class DiscoverViewModel {
         (37, "Supernatural")
     ]
 
-    var isSearching = false
+    private(set) var isSearching = false
 
-    var onDataUpdated: (() -> Void)?
-    var onError: ((String) -> Void)?
-    var onLoadingStateChanged: ((Bool) -> Void)?
+    var refreshUI: (() -> Void)?
+    var showError: ((String) -> Void)?
+    var showLoading: ((Bool) -> Void)?
 
     private var searchTask: Task<Void, Never>?
 
     func loadInitialData() async {
         guard !isDataLoaded else { return }
 
-        onLoadingStateChanged?(true)
+        showLoading?(true)
 
         for category in categories where category.id != 0 {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+
             for attempt in 1...2 {
                 do {
                     let response = try await animeService.fetchAnimeByGenre(genreId: category.id)
                     animeByGenre[category.id] = response.data
-                    onDataUpdated?()
+                    refreshUI?()
                     break
                 } catch {
                     if attempt == 2 {
@@ -61,7 +77,7 @@ final class DiscoverViewModel {
         }
 
         isDataLoaded = true
-        onLoadingStateChanged?(false)
+        showLoading?(false)
     }
 
     func getAnime(for categoryId: Int) -> [Anime] {
@@ -74,12 +90,12 @@ final class DiscoverViewModel {
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             isSearching = false
             searchResults = []
-            onDataUpdated?()
+            refreshUI?()
             return
         }
 
         isSearching = true
-        onLoadingStateChanged?(true)
+        showLoading?(true)
 
         searchTask = Task {
             try? await Task.sleep(nanoseconds: 300_000_000)
@@ -90,13 +106,13 @@ final class DiscoverViewModel {
                 let response = try await animeService.searchAnime(query: query)
                 guard !Task.isCancelled else { return }
                 searchResults = response.data
-                onDataUpdated?()
+                refreshUI?()
             } catch {
                 guard !Task.isCancelled else { return }
-                onError?(mapError(error))
+                showError?(mapError(error))
             }
 
-            onLoadingStateChanged?(false)
+            showLoading?(false)
         }
     }
 
@@ -104,7 +120,7 @@ final class DiscoverViewModel {
         searchTask?.cancel()
         isSearching = false
         searchResults = []
-        onDataUpdated?()
+        refreshUI?()
     }
 
     private func mapError(_ error: Error) -> String {

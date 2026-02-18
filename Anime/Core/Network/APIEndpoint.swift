@@ -10,6 +10,8 @@ import Foundation
 enum APIEndpoint {
     case searchAnime(query: String, page: Int)
     case animeByGenre(genreId: Int, page: Int)
+    case animeDetails(id: Int)
+    case seasonNow(page: Int)
 
     private var baseURL: String {
         return "https://api.jikan.moe/v4"
@@ -23,6 +25,13 @@ enum APIEndpoint {
 
         case .animeByGenre(let genreId, let page):
             return URL(string: "\(baseURL)/anime?genres=\(genreId)&page=\(page)")
+            
+        case .animeDetails(let id):
+            return URL(string: "\(baseURL)/anime/\(id)/full")
+            
+        case .seasonNow(let page):
+            return URL(string: "\(baseURL)/seasons/now?page=\(page)")
+
         }
     }
 }

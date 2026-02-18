@@ -9,7 +9,7 @@ import UIKit
 
 final class DiscoverViewController: UIViewController {
 
-    private let viewModel = DiscoverViewModel.shared
+    private var viewModel: DiscoverViewModelProtocol = DiscoverViewModel()
 
     private let searchBar: UISearchBar = {
         let sb = UISearchBar()
@@ -21,7 +21,6 @@ final class DiscoverViewController: UIViewController {
     private lazy var genreCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
         layout.minimumInteritemSpacing = 8
         layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
 
@@ -31,18 +30,21 @@ final class DiscoverViewController: UIViewController {
         cv.register(GenreFilterCell.self, forCellWithReuseIdentifier: GenreFilterCell.reuseIdentifier)
         cv.delegate = self
         cv.dataSource = self
-        cv.tag = 999
         return cv
     }()
 
-    private lazy var mainScrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.showsVerticalScrollIndicator = false
-        return sv
+    private lazy var mainTableView: UITableView = {
+        let tv = UITableView()
+        tv.backgroundColor = .clear
+        tv.separatorStyle = .none
+        tv.register(CategoryTableViewCell.self, forCellReuseIdentifier: CategoryTableViewCell.reuseIdentifier)
+        tv.register(AnimeTableViewCell.self, forCellReuseIdentifier: AnimeTableViewCell.reuseIdentifier)
+        tv.delegate = self
+        tv.dataSource = self
+        tv.showsVerticalScrollIndicator = false
+        return tv
     }()
 
-    private let contentView = UIView()
-    private var categoryViews: [(label: UILabel, collectionView: UICollectionView)] = []
     private var selectedFilterIndex: Int = 0
     private var isFiltering: Bool = false
 
@@ -60,19 +62,8 @@ final class DiscoverViewController: UIViewController {
         cv.register(AnimeCollectionViewCell.self, forCellWithReuseIdentifier: AnimeCollectionViewCell.reuseIdentifier)
         cv.delegate = self
         cv.dataSource = self
-        cv.tag = 1000
         cv.isHidden = true
         return cv
-    }()
-
-    private lazy var filteredResultsTableView: UITableView = {
-        let tv = UITableView()
-        tv.backgroundColor = .clear
-        tv.separatorStyle = .none
-        tv.register(AnimeTableViewCell.self, forCellReuseIdentifier: AnimeTableViewCell.reuseIdentifier)
-        tv.dataSource = self
-        tv.isHidden = true
-        return tv
     }()
 
     private let loadingIndicator: UIActivityIndicatorView = {
@@ -90,14 +81,22 @@ final class DiscoverViewController: UIViewController {
         label.isHidden = true
         return label
     }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-        setupBindings()
+        setUpUI()
+        bindViewModel()
         loadData()
     }
 
-    private func setupUI() {
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        searchBar.text = ""
+        searchBar.resignFirstResponder()
+        viewModel.clearSearch()
+    }
+
+    private func setUpUI() {
         view.backgroundColor = UIColor.theme.background
         navigationController?.navigationBar.prefersLargeTitles = false
 
@@ -105,13 +104,10 @@ final class DiscoverViewController: UIViewController {
 
         view.addSubview(searchBar)
         view.addSubview(genreCollectionView)
-        view.addSubview(mainScrollView)
+        view.addSubview(mainTableView)
         view.addSubview(searchResultsCollectionView)
-        view.addSubview(filteredResultsTableView)
         view.addSubview(loadingIndicator)
         view.addSubview(emptyStateLabel)
-
-        mainScrollView.addSubview(contentView)
 
         searchBar.anchor(
             top: view.safeAreaLayoutGuide.topAnchor,
@@ -129,78 +125,15 @@ final class DiscoverViewController: UIViewController {
             height: 40
         )
 
-        mainScrollView.anchor(
+        mainTableView.anchor(
             top: genreCollectionView.bottomAnchor,
             leading: view.leadingAnchor,
             bottom: view.safeAreaLayoutGuide.bottomAnchor,
             trailing: view.trailingAnchor,
-            paddingTop: 16
+            paddingTop: 8
         )
-
-        contentView.anchor(
-            top: mainScrollView.topAnchor,
-            leading: mainScrollView.leadingAnchor,
-            bottom: mainScrollView.bottomAnchor,
-            trailing: mainScrollView.trailingAnchor
-        )
-        contentView.widthAnchor.constraint(equalTo: mainScrollView.widthAnchor).isActive = true
-
-        var previousView: UIView? = nil
-
-        for (index, category) in viewModel.categories.enumerated() {
-            if category.id == 0 { continue }
-            let label = createCategoryLabel(title: category.name)
-            let collectionView = createCategoryCollectionView(tag: index)
-
-            contentView.addSubview(label)
-            contentView.addSubview(collectionView)
-
-            categoryViews.append((label: label, collectionView: collectionView))
-
-            if let previous = previousView {
-                label.anchor(
-                    top: previous.bottomAnchor,
-                    leading: contentView.leadingAnchor,
-                    trailing: contentView.trailingAnchor,
-                    paddingTop: 24,
-                    paddingLeading: 16,
-                    paddingTrailing: 16
-                )
-            } else {
-                label.anchor(
-                    top: contentView.topAnchor,
-                    leading: contentView.leadingAnchor,
-                    trailing: contentView.trailingAnchor,
-                    paddingTop: 8,
-                    paddingLeading: 16,
-                    paddingTrailing: 16
-                )
-            }
-
-            collectionView.anchor(
-                top: label.bottomAnchor,
-                leading: contentView.leadingAnchor,
-                trailing: contentView.trailingAnchor,
-                paddingTop: 12,
-                height: 240
-            )
-
-            previousView = collectionView
-        }
-
-        if let lastView = previousView {
-            lastView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20).isActive = true
-        }
 
         searchResultsCollectionView.anchor(
-            top: genreCollectionView.bottomAnchor,
-            leading: view.leadingAnchor,
-            bottom: view.safeAreaLayoutGuide.bottomAnchor,
-            trailing: view.trailingAnchor,
-            paddingTop: 16
-        )
-
-        filteredResultsTableView.anchor(
             top: genreCollectionView.bottomAnchor,
             leading: view.leadingAnchor,
             bottom: view.safeAreaLayoutGuide.bottomAnchor,
@@ -212,45 +145,20 @@ final class DiscoverViewController: UIViewController {
         emptyStateLabel.center(in: view)
     }
 
-    private func createCategoryLabel(title: String) -> UILabel {
-        let label = UILabel()
-        label.text = title
-        label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = UIColor.theme.textPrimary
-        return label
-    }
-
-    private func createCategoryCollectionView(tag: Int) -> UICollectionView {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 140, height: 240)
-        layout.minimumInteritemSpacing = 12
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.backgroundColor = .clear
-        cv.showsHorizontalScrollIndicator = false
-        cv.register(AnimeCollectionViewCell.self, forCellWithReuseIdentifier: AnimeCollectionViewCell.reuseIdentifier)
-        cv.delegate = self
-        cv.dataSource = self
-        cv.tag = tag
-        return cv
-    }
-
-    private func setupBindings() {
-        viewModel.onDataUpdated = { [weak self] in
+    private func bindViewModel() {
+        viewModel.refreshUI = { [weak self] in
             DispatchQueue.main.async {
                 self?.updateUI()
             }
         }
 
-        viewModel.onError = { [weak self] message in
+        viewModel.showError = { [weak self] message in
             DispatchQueue.main.async {
                 self?.showError(message)
             }
         }
 
-        viewModel.onLoadingStateChanged = { [weak self] isLoading in
+        viewModel.showLoading = { [weak self] isLoading in
             DispatchQueue.main.async {
                 if isLoading {
                     self?.loadingIndicator.startAnimating()
@@ -273,27 +181,17 @@ final class DiscoverViewController: UIViewController {
 
     private func updateUI() {
         genreCollectionView.reloadData()
-        genreCollectionView.selectItem(at: IndexPath(item: selectedFilterIndex, section: 0), animated: false, scrollPosition: [])
-        for categoryView in categoryViews {
-            categoryView.collectionView.reloadData()
-        }
+        mainTableView.reloadData()
         searchResultsCollectionView.reloadData()
-        filteredResultsTableView.reloadData()
 
         let isSearching = viewModel.isSearching
 
         if isSearching {
-            mainScrollView.isHidden = true
-            filteredResultsTableView.isHidden = true
+            mainTableView.isHidden = true
             searchResultsCollectionView.isHidden = false
-        } else if isFiltering {
-            mainScrollView.isHidden = true
-            searchResultsCollectionView.isHidden = true
-            filteredResultsTableView.isHidden = false
         } else {
-            mainScrollView.isHidden = false
+            mainTableView.isHidden = false
             searchResultsCollectionView.isHidden = true
-            filteredResultsTableView.isHidden = true
         }
 
         if isSearching && viewModel.searchResults.isEmpty && !loadingIndicator.isAnimating {
@@ -335,72 +233,112 @@ extension DiscoverViewController: UISearchBarDelegate {
 
 extension DiscoverViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView.tag == 999 {
+        if collectionView == genreCollectionView {
             return viewModel.categories.count
         }
-
-        if collectionView.tag == 1000 {
-            return viewModel.searchResults.count
-        }
-
-        let categoryId = viewModel.categories[collectionView.tag].id
-        return viewModel.getAnime(for: categoryId).count
+        return viewModel.searchResults.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView.tag == 999 {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GenreFilterCell.reuseIdentifier, for: indexPath) as! GenreFilterCell
+        if collectionView == genreCollectionView {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GenreFilterCell.reuseIdentifier, for: indexPath) as? GenreFilterCell else {
+                return UICollectionViewCell()
+            }
             let category = viewModel.categories[indexPath.item]
-            cell.configure(with: category.name)
-            cell.isSelected = selectedFilterIndex == indexPath.item
+            cell.configure(with: category.name, isChosen: selectedFilterIndex == indexPath.item)
             return cell
         }
 
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AnimeCollectionViewCell.reuseIdentifier, for: indexPath) as! AnimeCollectionViewCell
-
-        let anime: Anime
-        if collectionView.tag == 1000 {
-            anime = viewModel.searchResults[indexPath.item]
-        } else {
-            let categoryId = viewModel.categories[collectionView.tag].id
-            anime = viewModel.getAnime(for: categoryId)[indexPath.item]
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AnimeCollectionViewCell.reuseIdentifier, for: indexPath) as? AnimeCollectionViewCell else {
+            return UICollectionViewCell()
         }
-
+        let anime = viewModel.searchResults[indexPath.item]
         cell.configure(with: anime)
         return cell
     }
 }
 
-extension DiscoverViewController: UICollectionViewDelegate {
+extension DiscoverViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if collectionView == genreCollectionView {
+            let name = viewModel.categories[indexPath.item].name
+            let font = UIFont.systemFont(ofSize: 14, weight: .medium)
+            let textWidth = ceil((name as NSString).boundingRect(
+                with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: 32),
+                options: .usesLineFragmentOrigin,
+                attributes: [.font: font],
+                context: nil
+            ).width)
+            return CGSize(width: textWidth + 28, height: 32)
+        }
+
+        let width = (UIScreen.main.bounds.width - 48) / 3
+        return CGSize(width: width, height: width * 1.8)
+    }
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if collectionView.tag == 999 {
+        if collectionView == genreCollectionView {
             applyFilter(at: indexPath.item)
             return
         }
 
-        let anime: Anime
-        if collectionView.tag == 1000 {
-            anime = viewModel.searchResults[indexPath.item]
-        } else {
-            let categoryId = viewModel.categories[collectionView.tag].id
-            anime = viewModel.getAnime(for: categoryId)[indexPath.item]
-        }
-
+        let anime = viewModel.searchResults[indexPath.item]
+        let detailVC = AnimeDetailViewController(anime: anime)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
 
 extension DiscoverViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let categoryId = viewModel.categories[selectedFilterIndex].id
-        return viewModel.getAnime(for: categoryId).count
+        if isFiltering {
+            let categoryId = viewModel.categories[selectedFilterIndex].id
+            return viewModel.getAnime(for: categoryId).count
+        }
+        return viewModel.categories.count - 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: AnimeTableViewCell.reuseIdentifier, for: indexPath) as! AnimeTableViewCell
-        let categoryId = viewModel.categories[selectedFilterIndex].id
-        let anime = viewModel.getAnime(for: categoryId)[indexPath.row]
-        cell.configure(with: anime)
+        if isFiltering {
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: AnimeTableViewCell.reuseIdentifier, for: indexPath) as? AnimeTableViewCell else {
+                return UITableViewCell()
+            }
+            let categoryId = viewModel.categories[selectedFilterIndex].id
+            let anime = viewModel.getAnime(for: categoryId)[indexPath.row]
+            cell.configure(with: anime)
+            return cell
+        }
+
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CategoryTableViewCell.reuseIdentifier, for: indexPath) as? CategoryTableViewCell else {
+            return UITableViewCell()
+        }
+        let category = viewModel.categories[indexPath.row + 1]
+        let animeList = viewModel.getAnime(for: category.id)
+        cell.configure(with: category.name, animeList: animeList)
+        cell.delegate = self
         return cell
     }
 }
 
+extension DiscoverViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard isFiltering else { return }
+        let categoryId = viewModel.categories[selectedFilterIndex].id
+        let anime = viewModel.getAnime(for: categoryId)[indexPath.row]
+        let detailVC = AnimeDetailViewController(anime: anime)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if isFiltering {
+            return UITableView.automaticDimension
+        }
+        return 284
+    }
+}
+
+extension DiscoverViewController: CategoryTableViewCellDelegate {
+    func categoryTableViewCell(_ cell: CategoryTableViewCell, didSelectAnime anime: Anime) {
+        let detailVC = AnimeDetailViewController(anime: anime)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
+}

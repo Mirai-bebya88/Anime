@@ -17,12 +17,6 @@ final class GenreFilterCell: UICollectionViewCell {
         return label
     }()
 
-    override var isSelected: Bool {
-        didSet {
-            updateAppearance()
-        }
-    }
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -38,12 +32,11 @@ final class GenreFilterCell: UICollectionViewCell {
 
         contentView.addSubview(titleLabel)
         titleLabel.fillSuperview(padding: UIEdgeInsets(top: 6, left: 14, bottom: 6, right: 14))
-
-        updateAppearance()
     }
 
-    private func updateAppearance() {
-        if isSelected {
+    func configure(with title: String, isChosen: Bool) {
+        titleLabel.text = title
+        if isChosen {
             contentView.backgroundColor = UIColor.theme.primary
             contentView.layer.borderColor = UIColor.theme.primary.cgColor
             titleLabel.textColor = .white
@@ -52,9 +45,5 @@ final class GenreFilterCell: UICollectionViewCell {
             contentView.layer.borderColor = UIColor.theme.textSecondary.cgColor
             titleLabel.textColor = UIColor.theme.textPrimary
         }
-    }
-
-    func configure(with title: String) {
-        titleLabel.text = title
     }
 }

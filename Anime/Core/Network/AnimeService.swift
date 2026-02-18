@@ -20,4 +20,12 @@ final class AnimeService {
     func fetchAnimeByGenre(genreId: Int, page: Int = 1) async throws -> AnimeListResponse {
         return try await networkManager.fetch(.animeByGenre(genreId: genreId, page: page))
     }
+    
+    func fetchAnimeDetails(id: Int) async throws -> AnimeSingleResponse {
+        return try await networkManager.fetch(.animeDetails(id: id))
+    }
+    
+    func fetchSeasonalAnime(page: Int = 1) async throws -> AnimeListResponse {
+        return try await networkManager.fetch(.seasonNow(page: page))
+    }
 }

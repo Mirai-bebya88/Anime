@@ -22,20 +22,20 @@ final class MainTabBarController: UITabBarController {
             image: UIImage(systemName: "magnifyingglass"),
             selectedImage: UIImage(systemName: "magnifyingglass")
         )
-//
-//        let seasonalVC = createNavController(
-//            rootViewController: SeasonalViewController(),
-//            title: "Seasonal",
-//            image: UIImage(systemName: "calendar"),
-//            selectedImage: UIImage(systemName: "calendar.circle.fill")
-//        )
 
-//        let myListVC = createNavController(
-//            rootViewController: MyListViewController(),
-//            title: "My List",
-//            image: UIImage(systemName: "list.bullet"),
-//            selectedImage: UIImage(systemName: "list.bullet.rectangle.fill")
-//        )
+        let seasonalVC = createNavController(
+            rootViewController: SeasonalViewController(),
+            title: "Seasonal",
+            image: UIImage(systemName: "calendar"),
+            selectedImage: UIImage(systemName: "calendar.circle.fill")
+        )
+
+        let myListVC = createNavController(
+            rootViewController: FavouritesViewController(),
+            title: "Favourites",
+            image: UIImage(systemName: "heart"),
+            selectedImage: UIImage(systemName: "heart.fill")
+        )
 //
 //        let gamesVC = createNavController(
 //            rootViewController: GamesViewController(),
@@ -51,7 +51,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(systemName: "person.fill")
         )
 
-        viewControllers = [discoverVC, profileVC]
+        viewControllers = [discoverVC, seasonalVC, myListVC, profileVC]
     }
 
     private func createNavController(
@@ -66,3 +66,4 @@ final class MainTabBarController: UITabBarController {
         return navController
     }
 }
+

@@ -81,8 +81,8 @@ final class ProfileViewController: UIViewController {
     }()
 
     private let watchingStatView = StatBarView()
-    private let completedStatView = StatBarView()
     private let planStatView = StatBarView()
+    private let favouriteStatView = StatBarView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -120,8 +120,8 @@ final class ProfileViewController: UIViewController {
         statsContainerView.addSubview(statsStackView)
         watchStatusContainerView.addSubview(watchStatusTitleLabel)
         watchStatusContainerView.addSubview(watchingStatView)
-        watchStatusContainerView.addSubview(completedStatView)
         watchStatusContainerView.addSubview(planStatView)
+        watchStatusContainerView.addSubview(favouriteStatView)
 
         let totalAnimeStatView = createStatView(title: "Total Anime", value: "0")
         let avgScoreStatView = createStatView(title: "Avg Score", value: "-")
@@ -215,7 +215,7 @@ final class ProfileViewController: UIViewController {
             height: 24
         )
 
-        completedStatView.anchor(
+        planStatView.anchor(
             top: watchingStatView.bottomAnchor,
             leading: watchStatusContainerView.leadingAnchor,
             trailing: watchStatusContainerView.trailingAnchor,
@@ -225,8 +225,8 @@ final class ProfileViewController: UIViewController {
             height: 24
         )
 
-        planStatView.anchor(
-            top: completedStatView.bottomAnchor,
+        favouriteStatView.anchor(
+            top: planStatView.bottomAnchor,
             leading: watchStatusContainerView.leadingAnchor,
             bottom: watchStatusContainerView.bottomAnchor,
             trailing: watchStatusContainerView.trailingAnchor,
@@ -306,17 +306,17 @@ final class ProfileViewController: UIViewController {
             progress: Float(viewModel.watchingCount) / Float(total),
             color: UIColor.theme.primary
         )
-        completedStatView.configure(
-            title: "Completed",
-            count: viewModel.completedCount,
-            progress: Float(viewModel.completedCount) / Float(total),
-            color: UIColor.theme.success
-        )
         planStatView.configure(
             title: "Plan to Watch",
             count: viewModel.planToWatchCount,
             progress: Float(viewModel.planToWatchCount) / Float(total),
             color: UIColor.theme.accent
+        )
+        favouriteStatView.configure(
+            title: "Favourite",
+            count: viewModel.favouriteCount,
+            progress: Float(viewModel.favouriteCount) / Float(total),
+            color: UIColor.theme.error
         )
     }
 
@@ -329,22 +329,16 @@ final class ProfileViewController: UIViewController {
     }
 
     @objc private func profileImageTapped() {
-        let picker = UIImagePickerController()
-        picker.delegate = self
-        picker.allowsEditing = true
-
-        let alert = UIAlertController(title: "Change Profile Picture", message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Camera", style: .default) { [weak self] _ in
-            picker.sourceType = .camera
-            self?.present(picker, animated: true)
-        })
-        alert.addAction(UIAlertAction(title: "Photo Library", style: .default) { [weak self] _ in
-            picker.sourceType = .photoLibrary
-            self?.present(picker, animated: true)
-        })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        present(alert, animated: true)
+        let avatarPicker = AvatarPickerViewController()
+        avatarPicker.onAvatarSelected = { [weak self] image in
+            self?.profileImageView.image = image
+            self?.viewModel.updateProfileImage(image)
+        }
+        if let sheet = avatarPicker.sheetPresentationController {
+            sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(avatarPicker, animated: true)
     }
 
     @objc private func logoutTapped() {
@@ -367,19 +361,6 @@ final class ProfileViewController: UIViewController {
     }
 }
 
-extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-        if let image = info[.editedImage] as? UIImage {
-            profileImageView.image = image
-            viewModel.updateProfileImage(image)
-        }
-        picker.dismiss(animated: true)
-    }
-
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true)
-    }
-}
 
 final class StatBarView: UIView {
     private let titleLabel: UILabel = {

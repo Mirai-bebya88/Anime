@@ -15,6 +15,11 @@ struct Anime: Codable, Identifiable, Hashable {
     let type: String?
     let episodes: Int?
     let score: Double?
+    let trailer: AnimeTrailer?
+    let year: Int?
+    let synopsis: String?
+    let broadcast: AnimeBroadcast?
+
 
     var id: Int { malId }
 
@@ -24,6 +29,10 @@ struct Anime: Codable, Identifiable, Hashable {
 
     var imageURL: String? {
         images?.jpg?.imageUrl ?? images?.jpg?.largeImageUrl
+    }
+    
+    var largeImageURL: String? {
+        images?.jpg?.largeImageUrl ?? images?.jpg?.imageUrl
     }
 
     static func == (lhs: Anime, rhs: Anime) -> Bool {
@@ -42,4 +51,17 @@ struct AnimeImages: Codable {
 struct AnimeImageFormat: Codable {
     let imageUrl: String?
     let largeImageUrl: String?
+}
+
+struct AnimeTrailer: Codable {
+    let youtubeId: String?
+    let url: String?
+    let embedUrl: String?
+}
+
+struct AnimeBroadcast: Codable {
+    let day: String?
+    let time: String?
+    let timezone: String?
+    let string: String?
 }

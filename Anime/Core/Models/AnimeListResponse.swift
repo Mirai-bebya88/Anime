@@ -12,6 +12,10 @@ struct AnimeListResponse: Codable {
     let data: [Anime]
 }
 
+struct AnimeSingleResponse: Codable {
+    let data: Anime
+}
+
 struct Pagination: Codable {
     let lastVisiblePage: Int?
     let hasNextPage: Bool?
