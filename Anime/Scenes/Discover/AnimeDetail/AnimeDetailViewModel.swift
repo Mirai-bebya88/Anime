@@ -94,8 +94,12 @@ final class AnimeDetailViewModel: AnimeDetailViewModelProtocol {
 
     func removeFromList() {
         guard let saved = savedAnime else { return }
-        animeRepository.removeSavedAnime(saved)
-        savedAnime = nil
+        if saved.isFavorite {
+            animeRepository.clearWatchStatus(saved)
+        } else {
+            animeRepository.removeSavedAnime(saved)
+            savedAnime = nil
+        }
         refreshUI?()
     }
 

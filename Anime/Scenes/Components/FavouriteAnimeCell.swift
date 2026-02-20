@@ -84,12 +84,11 @@ final class FavouriteAnimeCell: UITableViewCell {
         statusBadge.setContentHuggingPriority(.required, for: .horizontal)
     }
 
-    func configure(with anime: SavedAnime, statusColor: UIColor) {
+    func configure(with anime: SavedAnime) {
         titleLabel.text = anime.title
 
-        let status = WatchStatus(rawValue: anime.watchStatus ?? "")?.displayName ?? anime.watchStatus
-        statusBadge.text = "  \(status ?? "")  "
-        statusBadge.backgroundColor = statusColor
+        statusBadge.text = "  Favourite  "
+        statusBadge.backgroundColor = .systemPink
 
         if let imageURL = anime.imageURL, let url = URL(string: imageURL) {
             animeImageView.kf.setImage(

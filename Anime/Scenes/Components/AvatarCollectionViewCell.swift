@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class AvatarCell: UICollectionViewCell {
+final class AvatarCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = "AvatarCell"
 
     private let circleView: UIView = {

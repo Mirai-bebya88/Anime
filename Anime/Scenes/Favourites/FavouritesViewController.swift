@@ -93,7 +93,7 @@ extension FavouritesViewController: UITableViewDataSource {
             return UITableViewCell()
         }
         let anime = viewModel.savedAnime[indexPath.row]
-        cell.configure(with: anime, statusColor: viewModel.getStatusColor(for: anime.watchStatus ?? ""))
+        cell.configure(with: anime)
         return cell
     }
 }

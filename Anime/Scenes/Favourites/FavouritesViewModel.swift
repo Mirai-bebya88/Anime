@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UIKit
 
 protocol FavouritesViewModelProtocol: AnyObject {
     var savedAnime: [SavedAnime] { get }
@@ -15,7 +14,6 @@ protocol FavouritesViewModelProtocol: AnyObject {
 
     func loadSavedAnime()
     func removeAnime(at index: Int)
-    func getStatusColor(for status: String) -> UIColor
 }
 
 final class FavouritesViewModel: FavouritesViewModelProtocol {
@@ -39,18 +37,12 @@ final class FavouritesViewModel: FavouritesViewModelProtocol {
 
     func removeAnime(at index: Int) {
         let anime = savedAnime[index]
-        animeRepository.removeSavedAnime(anime)
+        if anime.watchStatus != nil {
+            animeRepository.toggleFavorite(anime)
+        } else {
+            animeRepository.removeSavedAnime(anime)
+        }
         loadSavedAnime()
     }
 
-    func getStatusColor(for status: String) -> UIColor {
-        switch status {
-        case WatchStatus.watching.rawValue:
-            return UIColor.theme.primary
-        case WatchStatus.plan.rawValue:
-            return UIColor.theme.accent
-        default:
-            return UIColor.theme.textSecondary
-        }
-    }
 }

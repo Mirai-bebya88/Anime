@@ -12,7 +12,6 @@ final class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
-
     }
 
     private func setupTabs() {
@@ -36,13 +35,13 @@ final class MainTabBarController: UITabBarController {
             image: UIImage(systemName: "heart"),
             selectedImage: UIImage(systemName: "heart.fill")
         )
-//
-//        let gamesVC = createNavController(
-//            rootViewController: GamesViewController(),
-//            title: "Games",
-//            image: UIImage(systemName: "gamecontroller"),
-//            selectedImage: UIImage(systemName: "gamecontroller.fill")
-//        )
+
+        let gamesVC = createNavController(
+            rootViewController: GamesViewController(),
+            title: "Games",
+            image: UIImage(systemName: "gamecontroller"),
+            selectedImage: UIImage(systemName: "gamecontroller.fill")
+        )
 
         let profileVC = createNavController(
             rootViewController: ProfileViewController(),
@@ -51,7 +50,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(systemName: "person.fill")
         )
 
-        viewControllers = [discoverVC, seasonalVC, myListVC, profileVC]
+        viewControllers = [discoverVC, seasonalVC, myListVC, gamesVC, profileVC]
     }
 
     private func createNavController(

@@ -211,5 +211,4 @@ final class SignInViewController: UIViewController {
     private func hideError() {
         errorLabel.isHidden = true
     }
-
 }

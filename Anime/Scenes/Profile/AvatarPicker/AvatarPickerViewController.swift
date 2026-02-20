@@ -35,7 +35,7 @@ final class AvatarPickerViewController: UIViewController {
 
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.backgroundColor = .clear
-        cv.register(AvatarCell.self, forCellWithReuseIdentifier: AvatarCell.reuseIdentifier)
+        cv.register(AvatarCollectionViewCell.self, forCellWithReuseIdentifier: AvatarCollectionViewCell.reuseIdentifier)
         cv.delegate = self
         cv.dataSource = self
         return cv
@@ -78,7 +78,7 @@ extension AvatarPickerViewController: UICollectionViewDataSource {
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarCell.reuseIdentifier, for: indexPath) as? AvatarCell else {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AvatarCollectionViewCell.reuseIdentifier, for: indexPath) as? AvatarCollectionViewCell else {
             return UICollectionViewCell()
         }
         let avatar = viewModel.avatar(at: indexPath.item)

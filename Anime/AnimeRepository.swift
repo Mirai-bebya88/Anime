@@ -82,6 +82,11 @@ final class AnimeRepository {
         coreData.saveContext()
     }
 
+    func clearWatchStatus(_ savedAnime: SavedAnime) {
+        savedAnime.watchStatus = nil
+        coreData.saveContext()
+    }
+
     func removeSavedAnime(_ savedAnime: SavedAnime) {
         coreData.delete(savedAnime)
     }

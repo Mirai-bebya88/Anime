@@ -12,6 +12,7 @@ enum APIEndpoint {
     case animeByGenre(genreId: Int, page: Int)
     case animeDetails(id: Int)
     case seasonNow(page: Int)
+    case topAnime(page: Int, filter: String?)
 
     private var baseURL: String {
         return "https://api.jikan.moe/v4"
@@ -31,6 +32,13 @@ enum APIEndpoint {
             
         case .seasonNow(let page):
             return URL(string: "\(baseURL)/seasons/now?page=\(page)")
+            
+        case .topAnime(let page, let filter):
+            var urlString = "\(baseURL)/top/anime?page=\(page)"
+            if let filter = filter {
+                urlString += "&filter=\(filter)"
+            }
+            return URL(string: urlString)
 
         }
     }

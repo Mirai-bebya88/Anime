@@ -28,4 +28,8 @@ final class AnimeService {
     func fetchSeasonalAnime(page: Int = 1) async throws -> AnimeListResponse {
         return try await networkManager.fetch(.seasonNow(page: page))
     }
+    
+    func fetchTopAnime(page: Int = 1, filter: String? = nil) async throws -> AnimeListResponse {
+        return try await networkManager.fetch(.topAnime(page: page, filter: filter))
+    }
 }
