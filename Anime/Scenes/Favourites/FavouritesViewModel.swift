@@ -37,12 +37,11 @@ final class FavouritesViewModel: FavouritesViewModelProtocol {
 
     func removeAnime(at index: Int) {
         let anime = savedAnime[index]
-        if anime.watchStatus != nil {
+        if let _ = anime.watchStatus {
             animeRepository.toggleFavorite(anime)
         } else {
             animeRepository.removeSavedAnime(anime)
         }
         loadSavedAnime()
     }
-
 }

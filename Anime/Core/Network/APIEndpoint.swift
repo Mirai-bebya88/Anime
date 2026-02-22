@@ -39,7 +39,6 @@ enum APIEndpoint {
                 urlString += "&filter=\(filter)"
             }
             return URL(string: urlString)
-
         }
     }
 }

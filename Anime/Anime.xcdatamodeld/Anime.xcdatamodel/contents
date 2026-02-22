@@ -24,7 +24,7 @@
         <attribute name="password" optional="YES" attributeType="String"/>
         <attribute name="profileImage" optional="YES" attributeType="Binary"/>
         <attribute name="username" optional="YES" attributeType="String"/>
-        <relationship name="gameScores" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GameScore" inverseName="user" inverseEntity="GameScore"/>
+        <relationship name="gameScores" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="GameScore" inverseName="user" inverseEntity="GameScore"/>
         <relationship name="savedAnime" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SavedAnime" inverseName="user" inverseEntity="SavedAnime"/>
     </entity>
 </model>

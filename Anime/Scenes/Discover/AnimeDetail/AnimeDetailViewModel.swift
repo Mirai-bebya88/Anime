@@ -47,7 +47,8 @@ final class AnimeDetailViewModel: AnimeDetailViewModelProtocol {
     }
 
     var isSaved: Bool {
-        savedAnime != nil
+        if let _ = savedAnime { return true }
+        return false
     }
 
     var isFavorite: Bool {
@@ -119,11 +120,11 @@ final class AnimeDetailViewModel: AnimeDetailViewModelProtocol {
 
     func removeFromFavorites() {
         guard let saved = savedAnime else { return }
-        if saved.watchStatus == nil {
+        if let _ = saved.watchStatus {
+            animeRepository.toggleFavorite(saved)
+        } else {
             animeRepository.removeSavedAnime(saved)
             savedAnime = nil
-        } else {
-            animeRepository.toggleFavorite(saved)
         }
         refreshUI?()
     }

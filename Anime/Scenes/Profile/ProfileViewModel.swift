@@ -11,6 +11,7 @@ import UIKit
 final class ProfileViewModel {
     private let userRepository = UserRepository.shared
     private let animeRepository = AnimeRepository.shared
+    private let gameRepository = GameRepository.shared
 
     var user: User?
     var totalAnime: Int = 0
@@ -46,7 +47,10 @@ final class ProfileViewModel {
         watchingCount = savedAnime.filter { $0.watchStatus == "watching" }.count
         planToWatchCount = savedAnime.filter { $0.watchStatus == "plan" }.count
         favouriteCount = savedAnime.filter { $0.isFavorite == true }.count
-        totalAnime = savedAnime.count
+        totalAnime = watchingCount + planToWatchCount + favouriteCount
+
+        averageGameScore = gameRepository.fetchAverageScore(for: user)
+        highestGameScore = gameRepository.fetchHighScore(for: user)
 
         onDataUpdated?()
     }

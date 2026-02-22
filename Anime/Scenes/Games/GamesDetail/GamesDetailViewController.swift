@@ -12,8 +12,6 @@ final class GamesDetailViewController: UIViewController {
 
     private let viewModel: GamesDetailViewModelProtocol = GamesDetailViewModel()
 
-    // MARK: - UI Components
-
     private lazy var closeButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
@@ -57,7 +55,6 @@ final class GamesDetailViewController: UIViewController {
         return indicator
     }()
 
-    // Bottom stats bar
     private let statsBar: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.theme.secondaryBackground
@@ -84,7 +81,6 @@ final class GamesDetailViewController: UIViewController {
         return label
     }()
 
-    // Game over overlay
     private let gameOverView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.theme.background.withAlphaComponent(0.96)
@@ -139,16 +135,12 @@ final class GamesDetailViewController: UIViewController {
         return button
     }()
 
-    // MARK: - Lifecycle
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpUI()
         bindViewModel()
         startGame()
     }
-
-    // MARK: - Setup
 
     private func setUpUI() {
         view.backgroundColor = UIColor.theme.background
@@ -172,7 +164,6 @@ final class GamesDetailViewController: UIViewController {
         gameOverView.addSubview(playAgainButton)
         gameOverView.addSubview(exitButton)
 
-        // Top bar
         closeButton.anchor(
             top: view.safeAreaLayoutGuide.topAnchor,
             trailing: view.trailingAnchor,
@@ -198,7 +189,6 @@ final class GamesDetailViewController: UIViewController {
             paddingTrailing: 20
         )
 
-        // Stats bar at bottom
         statsBar.anchor(
             leading: view.leadingAnchor,
             bottom: view.bottomAnchor,
@@ -220,7 +210,6 @@ final class GamesDetailViewController: UIViewController {
             paddingTrailing: 24
         )
 
-        // Cards layout
         let cardAreaTop = feedbackLabel.bottomAnchor
         let cardAreaBottom = statsBar.topAnchor
 
@@ -255,7 +244,6 @@ final class GamesDetailViewController: UIViewController {
 
         loadingIndicator.center(in: view)
 
-        // Game over overlay
         gameOverView.fillSuperview()
 
         gameOverLabel.anchor(
@@ -399,11 +387,9 @@ final class GamesDetailViewController: UIViewController {
         let bottomScore = bottom.score ?? 0
         let topIsWinner = topScore >= bottomScore
 
-        // Show scores first
         topCardView.configure(with: top, showScore: true, isWinner: topIsWinner)
         bottomCardView.configure(with: bottom, showScore: true, isWinner: !topIsWinner)
 
-        // If bottom has higher score, swap card contents so higher is always on top
         if bottomScore > topScore {
             UIView.animate(withDuration: 0.25, delay: 0.3) {
                 self.topCardView.alpha = 0
@@ -418,7 +404,6 @@ final class GamesDetailViewController: UIViewController {
             }
         }
 
-        // Update feedback label
         if correct {
             feedbackLabel.textColor = UIColor.theme.success
             feedbackLabel.text = "Correct!"
@@ -427,7 +412,6 @@ final class GamesDetailViewController: UIViewController {
             feedbackLabel.text = "Wrong!"
         }
 
-        // Update streak display
         streakLabel.text = "Streak: \(viewModel.currentScore)/\(viewModel.totalQuestions)"
         scoreLabel.text = "Score: \(viewModel.currentScore)"
     }
@@ -455,8 +439,6 @@ final class GamesDetailViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    // MARK: - Actions
-
     @objc private func cardTapped(_ gesture: UITapGestureRecognizer) {
         guard let cardView = gesture.view as? AnimeCardView else { return }
         let selection: GamesDetailViewModel.Selection = cardView == topCardView ? .top : .bottom
@@ -472,147 +454,5 @@ final class GamesDetailViewController: UIViewController {
         feedbackLabel.textColor = UIColor.theme.textPrimary
         feedbackLabel.text = "Which anime has a higher rating?"
         startGame()
-    }
-}
-
-// MARK: - AnimeCardView
-
-final class AnimeCardView: UIView {
-
-    private let imageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        return iv
-    }()
-
-    private let gradientView: UIView = {
-        let view = UIView()
-        return view
-    }()
-
-    private let gradientLayer = CAGradientLayer()
-
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 15, weight: .bold)
-        label.textColor = .white
-        label.numberOfLines = 2
-        return label
-    }()
-
-    private let scoreLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 30, weight: .black)
-        label.textColor = .white
-        label.textAlignment = .right
-        label.isHidden = true
-        return label
-    }()
-
-    private let winnerBadge: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.theme.accent
-        view.layer.cornerRadius = 12
-        view.isHidden = true
-
-        let label = UILabel()
-        label.text = "★ Higher"
-        label.font = .systemFont(ofSize: 12, weight: .bold)
-        label.textColor = .white
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: view.topAnchor, constant: 4),
-            label.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -4),
-            label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8)
-        ])
-        return view
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        gradientLayer.frame = gradientView.bounds
-    }
-
-    private func setupUI() {
-        layer.cornerRadius = 16
-        clipsToBounds = true
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = CGSize(width: 0, height: 4)
-        layer.shadowRadius = 10
-        layer.shadowOpacity = 0.15
-
-        addSubview(imageView)
-        addSubview(gradientView)
-        addSubview(winnerBadge)
-        addSubview(titleLabel)
-        addSubview(scoreLabel)
-
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        gradientView.translatesAutoresizingMaskIntoConstraints = false
-        winnerBadge.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        scoreLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: topAnchor),
-            imageView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            gradientView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            gradientView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            gradientView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            gradientView.heightAnchor.constraint(equalTo: heightAnchor, multiplier: 0.5),
-
-            winnerBadge.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            winnerBadge.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            titleLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
-            titleLabel.trailingAnchor.constraint(equalTo: scoreLabel.leadingAnchor, constant: -8),
-
-            scoreLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            scoreLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
-            scoreLabel.widthAnchor.constraint(equalToConstant: 72)
-        ])
-
-        gradientLayer.colors = [
-            UIColor.clear.cgColor,
-            UIColor.black.withAlphaComponent(0.75).cgColor
-        ]
-        gradientLayer.locations = [0.0, 1.0]
-        gradientView.layer.addSublayer(gradientLayer)
-    }
-
-    func configure(with anime: Anime, showScore: Bool, isWinner: Bool) {
-        titleLabel.text = anime.displayTitle
-        winnerBadge.isHidden = !isWinner
-
-        if showScore, let score = anime.score {
-            scoreLabel.text = String(format: "%.2f", score)
-            scoreLabel.isHidden = false
-        } else {
-            scoreLabel.isHidden = true
-        }
-
-        if let imageURL = anime.largeImageURL ?? anime.imageURL, let url = URL(string: imageURL) {
-            imageView.kf.setImage(
-                with: url,
-                placeholder: UIImage(systemName: "photo"),
-                options: [.transition(.fade(0.2))]
-            )
-        }
     }
 }

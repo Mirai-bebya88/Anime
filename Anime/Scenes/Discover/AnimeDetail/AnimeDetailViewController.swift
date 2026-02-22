@@ -252,7 +252,6 @@ final class AnimeDetailViewController: UIViewController {
             paddingTrailing: 16,
             height: 44
         )
-
     }
 
     private func bindViewModel() {
@@ -352,23 +351,22 @@ final class AnimeDetailViewController: UIViewController {
         let trailer = viewModel.currentAnime.trailer
         var videoId: String? = trailer?.youtubeId
 
-        if videoId == nil || videoId?.isEmpty == true {
-            if let embedUrl = trailer?.embedUrl {
-                videoId = extractYouTubeId(from: embedUrl)
-            } else if let url = trailer?.url {
-                videoId = extractYouTubeId(from: url)
-            }
+        if let id = videoId, id != "" {
+            // videoId is already valid
+        } else if let embedUrl = trailer?.embedUrl {
+            videoId = extractYouTubeId(from: embedUrl)
+        } else if let url = trailer?.url {
+            videoId = extractYouTubeId(from: url)
         }
 
-        guard let id = videoId, !id.isEmpty,
-              let url = URL(string: "https://www.youtube.com/watch?v=\(id)") else {
+        if let id = videoId, id != "",
+           let url = URL(string: "https://www.youtube.com/watch?v=\(id)") {
+            viewModel.saveToList(status: .watching)
+            let safariVC = SFSafariViewController(url: url)
+            present(safariVC, animated: true)
+        } else {
             showError("No trailer available for this anime")
-            return
         }
-
-        viewModel.saveToList(status: .watching)
-        let safariVC = SFSafariViewController(url: url)
-        present(safariVC, animated: true)
     }
 
     private func extractYouTubeId(from url: String) -> String? {

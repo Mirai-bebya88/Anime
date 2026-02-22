@@ -52,7 +52,8 @@ final class UserRepository {
     }
 
     func userExists(username: String) -> Bool {
-        return fetchUser(by: username) != nil
+        if let _ = fetchUser(by: username) { return true }
+        return false
     }
 
     func userExistsWithCredentials(username: String, password: String) -> Bool {

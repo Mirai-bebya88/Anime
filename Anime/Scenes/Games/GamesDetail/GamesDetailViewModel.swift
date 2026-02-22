@@ -11,6 +11,7 @@ protocol GamesDetailViewModelProtocol: AnyObject {
     var topAnime: Anime? { get }
     var bottomAnime: Anime? { get }
     var currentScore: Int { get }
+    var currentStreak: Int { get }
     var questionsAnswered: Int { get }
     var totalQuestions: Int { get }
     var isGameOver: Bool { get }
@@ -37,6 +38,8 @@ final class GamesDetailViewModel: GamesDetailViewModelProtocol {
     private(set) var bottomAnime: Anime?
 
     private(set) var currentScore: Int = 0
+    private(set) var currentStreak: Int = 0
+    private var bestStreak: Int = 0
     private(set) var questionsAnswered: Int = 0
     let totalQuestions: Int = 10
 
@@ -52,6 +55,8 @@ final class GamesDetailViewModel: GamesDetailViewModelProtocol {
     func startNewGame() async {
         isGameOver = false
         currentScore = 0
+        currentStreak = 0
+        bestStreak = 0
         questionsAnswered = 0
 
         await loadAnimePool()
@@ -62,13 +67,16 @@ final class GamesDetailViewModel: GamesDetailViewModelProtocol {
         showLoading?(true)
 
         do {
-            let response = try await animeService.fetchTopAnime(page: 1, filter: nil)
+            let page1 = Int.random(in: 1...10)
+            let page2 = page1 == 10 ? 1 : page1 + 1
+
+            let response = try await animeService.fetchTopAnime(page: page1, filter: nil)
             animePool = response.data.filter { ($0.score ?? 0) > 0 }
 
-            if animePool.count < 20 {
-                let response2 = try await animeService.fetchTopAnime(page: 2, filter: nil)
-                animePool.append(contentsOf: response2.data.filter { ($0.score ?? 0) > 0 })
-            }
+            let response2 = try await animeService.fetchTopAnime(page: page2, filter: nil)
+            animePool.append(contentsOf: response2.data.filter { ($0.score ?? 0) > 0 })
+
+            animePool.shuffle()
         } catch {
             showError?("Failed to load anime. Please try again.")
         }
@@ -107,8 +115,11 @@ final class GamesDetailViewModel: GamesDetailViewModelProtocol {
 
         if isCorrect {
             currentScore += 1
+            currentStreak += 1
+            bestStreak = max(bestStreak, currentStreak)
             onCorrectAnswer?()
         } else {
+            currentStreak = 0
             onWrongAnswer?()
         }
 
@@ -127,7 +138,7 @@ final class GamesDetailViewModel: GamesDetailViewModelProtocol {
 
     private func saveScore() {
         guard let user = userRepository.currentUser else { return }
-        _ = gameRepository.saveScore(score: Int16(currentScore), streak: Int16(currentScore), for: user)
+        gameRepository.saveScore(score: Int16(currentScore), streak: Int16(bestStreak), for: user)
     }
 
     enum Selection {

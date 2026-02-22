@@ -11,8 +11,6 @@ final class GamesViewController: UIViewController {
 
     private let viewModel: GamesViewModelProtocol = GamesViewModel()
 
-    // MARK: - UI Components
-
     private let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.showsVerticalScrollIndicator = false
@@ -21,7 +19,6 @@ final class GamesViewController: UIViewController {
 
     private let contentView = UIView()
 
-    // Hero section
     private let heroView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 24
@@ -65,7 +62,6 @@ final class GamesViewController: UIViewController {
         return label
     }()
 
-    // Stats section
     private let statsContainerView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.theme.secondaryBackground
@@ -76,7 +72,6 @@ final class GamesViewController: UIViewController {
     private let highScoreCard = StatsCardView(icon: "star.fill", title: "Best Score", color: UIColor.theme.accent)
     private let bestStreakCard = StatsCardView(icon: "flame.fill", title: "Best Streak", color: .systemOrange)
 
-    // Play button
     private lazy var playButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("  Play Now", for: .normal)
@@ -94,8 +89,6 @@ final class GamesViewController: UIViewController {
         return button
     }()
 
-    // MARK: - Lifecycle
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setUpUI()
@@ -112,8 +105,6 @@ final class GamesViewController: UIViewController {
         viewModel.loadStats()
     }
 
-    // MARK: - Setup
-
     private func setUpUI() {
         view.backgroundColor = UIColor.theme.background
         title = "Games"
@@ -128,13 +119,11 @@ final class GamesViewController: UIViewController {
         statsContainerView.addSubview(highScoreCard)
         statsContainerView.addSubview(bestStreakCard)
 
-        // Hero inner
         heroView.addSubview(gameIconView)
         heroView.addSubview(gameTitleLabel)
         heroView.addSubview(gameTaglineLabel)
         heroView.addSubview(howToPlayLabel)
 
-        // Gradient
         heroGradientLayer.colors = [
             UIColor.theme.primary.cgColor,
             UIColor.theme.secondary.cgColor
@@ -143,7 +132,6 @@ final class GamesViewController: UIViewController {
         heroGradientLayer.endPoint = CGPoint(x: 1, y: 1)
         heroView.layer.insertSublayer(heroGradientLayer, at: 0)
 
-        // ScrollView
         scrollView.anchor(
             top: view.safeAreaLayoutGuide.topAnchor,
             leading: view.leadingAnchor,
@@ -159,7 +147,6 @@ final class GamesViewController: UIViewController {
         )
         contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor).isActive = true
 
-        // Hero card (large, prominent)
         heroView.anchor(
             top: contentView.topAnchor,
             leading: contentView.leadingAnchor,
@@ -206,7 +193,6 @@ final class GamesViewController: UIViewController {
             paddingTrailing: 24
         )
 
-        // Stats cards
         statsContainerView.anchor(
             top: heroView.bottomAnchor,
             leading: contentView.leadingAnchor,
@@ -245,7 +231,6 @@ final class GamesViewController: UIViewController {
             constant: -18
         ).isActive = true
 
-        // Play button
         playButton.anchor(
             top: statsContainerView.bottomAnchor,
             leading: contentView.leadingAnchor,
@@ -275,16 +260,12 @@ final class GamesViewController: UIViewController {
         bestStreakCard.setValue(bestStreak > 0 ? "\(bestStreak)/10" : "--")
     }
 
-    // MARK: - Actions
-
     @objc private func playButtonTapped() {
         let gamePlayVC = GamesDetailViewController()
         gamePlayVC.modalPresentationStyle = .fullScreen
         present(gamePlayVC, animated: true)
     }
 }
-
-// MARK: - StatsCardView
 
 private final class StatsCardView: UIView {
 

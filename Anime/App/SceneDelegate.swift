@@ -17,7 +17,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
 
         let rootViewController: UIViewController
-        if UserRepository.shared.currentUser != nil {
+        if let _ = UserRepository.shared.currentUser {
             rootViewController = MainTabBarController()
         } else {
             rootViewController = UINavigationController(rootViewController: SignInViewController())
